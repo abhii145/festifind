@@ -1,4 +1,4 @@
-export const headerLinks = [
+export const headerAdminLinks = [
   {
     label: "Home",
     route: "/",
@@ -6,6 +6,18 @@ export const headerLinks = [
   {
     label: "Create Event",
     route: "/events/create",
+  },
+  {
+    label: "My Profile",
+    route: "/profile",
+  },
+]
+
+
+export const headerUserLinks = [
+  {
+    label: "Home",
+    route: "/",
   },
   {
     label: "My Profile",
