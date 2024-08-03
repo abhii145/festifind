@@ -6,6 +6,8 @@ import * as z from "zod"
 import clsx from "clsx"
 import { useRouter } from "next/navigation"
 import axios from "axios"
+import { loginUser, signupUser } from "@/store/slices/userSlice"
+import { useAppDispatch } from "@/store/hooks"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -27,6 +29,7 @@ export type SignupFormInputs = z.infer<typeof signupSchema>
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true)
+   const dispatch = useAppDispatch()
   const router = useRouter()
 
   const loginForm = useForm<LoginFormInputs>({
@@ -41,11 +44,10 @@ const Auth: React.FC = () => {
 
   const onLoginSubmit = async (data: LoginFormInputs) => {
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/sign-in`,
-        data
-      )
+    const result = await dispatch(loginUser(data))
+    if (loginUser.fulfilled.match(result)) {
       router.push("/")
+    }
     } catch (error: any) {
       console.log(error.response)
     }
@@ -53,13 +55,12 @@ const Auth: React.FC = () => {
 
   const onSignupSubmit = async (data: SignupFormInputs) => {
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/sign-up`,
-        data
-      )
-      router.push("/")
+      const result = await dispatch(signupUser(data))
+      if (signupUser.fulfilled.match(result)) {
+        router.push("/")
+      }
     } catch (error: any) {
-      console.log(error.response.data.error)
+      console.log(error.response)
     }
   }
 
