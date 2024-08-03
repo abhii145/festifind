@@ -7,7 +7,8 @@ import clsx from "clsx"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 import { loginUser, signupUser } from "@/store/slices/userSlice"
-import { useAppDispatch } from "@/store/hooks"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/store/store"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -29,7 +30,7 @@ export type SignupFormInputs = z.infer<typeof signupSchema>
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true)
-   const dispatch = useAppDispatch()
+   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
 
   const loginForm = useForm<LoginFormInputs>({

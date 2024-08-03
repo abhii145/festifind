@@ -1,31 +1,25 @@
-'use client'
+"use client"
 import EventForm from "@/components/shared/EventForm"
-import useAuth from "@/lib/useAuth"
 import { RootState } from "@/store/store"
 import { useSelector } from "react-redux"
 
-const CreateEvent = () => {
-   const isAuthorized = useAuth("admin")
-  const user = useSelector((state:RootState) => state.user.user)
+const UpdateEvent = () => {
+  const user = useSelector((state: RootState) => state.user.user)
   const userId = user?._id!
-
-   if (!isAuthorized) {
-     return null
-   }
 
   return (
     <>
       <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
         <h3 className="wrapper h3-bold text-center sm:text-left">
-          Create Event
+          Update Event
         </h3>
       </section>
 
       <div className="wrapper my-8">
-        <EventForm userId={userId} type="Create" />
+        <EventForm userId={userId} type="Update" />
       </div>
     </>
   )
 }
 
-export default CreateEvent
+export default UpdateEvent

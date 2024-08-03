@@ -1,14 +1,15 @@
 "use client"
 
 import { headerAdminLinks, headerUserLinks } from "@/constants"
-import { useAppSelector } from "@/store/hooks"
+import { RootState } from "@/store/store"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import React from "react"
+import { useSelector } from "react-redux"
 
 const NavItems = () => {
   const pathname = usePathname()
-  const user = useAppSelector((state) => state.user.user)
+  const user = useSelector((state:RootState) => state.user.user)
 
   const links = user?.role === "admin" ? headerAdminLinks : headerUserLinks
 
