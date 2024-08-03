@@ -4,17 +4,18 @@ import Link from "next/link"
 import { Button } from "../ui/button"
 import NavItems from "./NavItems"
 import MobileNav from "./MobileNav"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { logoutUser } from "@/store/slices/userSlice"
 import { useRouter } from "next/navigation"
+import { AppDispatch, RootState } from "@/store/store"
+import { useDispatch, useSelector } from "react-redux"
 
 const Header = () => {
-  const user = useAppSelector((state) => state.user.user)
-  const dispatch = useAppDispatch()
+  const user = useSelector((state:RootState) => state.user.user)
+  const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
 
   const logOutHandler = async () => {
-    const result = await dispatch(logoutUser())
+    const result = dispatch(logoutUser())
     if (logoutUser.fulfilled.match(result)) {
       router.push("/")
     }
