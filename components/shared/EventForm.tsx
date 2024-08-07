@@ -23,6 +23,7 @@ import Dropdown from "./Dropdown"
 import { eventDefaultValues } from "@/constants"
 import { useState } from "react"
 import FileUploader from "./FileUploader"
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 
 const EventForm = ({
   userId,
@@ -32,16 +33,51 @@ const EventForm = ({
   type: "Create" | "Update"
 }) => {
   const initialValues = eventDefaultValues
-  const [files, setFiles] = useState<File[]>([])
+  const [file, setFile] = useState<File | null>(null)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: initialValues,
   })
 
-  const onSubmit = async (data: z.infer<typeof eventFormSchema>) => {
-    console.log(data)
-  }
+    const Bucket = process.env.NEXT_PUBLIC_AWS_BUCKET_NAME
+    const s3 = new S3Client({
+      region: process.env.NEXT_PUBLIC_AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID as string,
+        secretAccessKey: process.env
+          .NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY as string,
+      },
+    })
+
+ const onSubmit = async (data: z.infer<typeof eventFormSchema>) => {
+   if (file) {
+     const fileName = file.name
+
+     try {
+       const uploadToS3 = new PutObjectCommand({
+         Bucket,
+         Key: fileName,
+         Body: file,
+       })
+       await s3.send(uploadToS3)
+       const s3Url = `https://${Bucket}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${fileName}`
+       setPhotoUrl(s3Url)
+       console.log({ ...data, imageUrl: s3Url })
+       console.log(data?.imageUrl)
+     } catch (error) {
+       console.log(error)
+     }
+   } else {
+     console.log({ ...data, photoUrl })
+   }
+ }
+
+ const handleFileSelect = (selectedFile: File) => {
+   setFile(selectedFile)
+ }
 
   return (
     <Form {...form}>
@@ -106,11 +142,7 @@ const EventForm = ({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormControl className="h-72">
-                  <FileUploader
-                    onFieldChange={field.onChange}
-                    imageUrl={field.value}
-                    setFiles={setFiles}
-                  />
+                  <FileUploader onFileSelect={handleFileSelect} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
