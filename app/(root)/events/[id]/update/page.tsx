@@ -1,53 +1,48 @@
-"use client"
-import EventForm from "@/components/shared/EventForm"
-import { getEventById } from "@/lib/actions/event.actions"
-import useAuth from "@/lib/useAuth"
-import { RootState } from "@/store/store"
-import { useSelector } from "react-redux"
-import { useState, useEffect } from "react"
+"use client";
+import EventForm from "@/components/shared/EventForm";
+import { getEventById } from "@/lib/actions/event.actions";
+import useAuth from "@/lib/useAuth";
+import { RootState } from "@/store/store";
+import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
 
 type UpdateEventProps = {
   params: {
-    id: string
-  }
-}
+    id: string;
+  };
+};
 
 const UpdateEvent = ({ params: { id } }: UpdateEventProps) => {
-  const isAuthorized = useAuth("admin")
-  const user = useSelector((state: RootState) => state.user.user)
-  const userId = user?._id!
+  const isAuthorized = useAuth("admin");
+  const user = useSelector((state: RootState) => state.user.user);
+  const userId = user?._id!;
 
-  const [event, setEvent] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [event, setEvent] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const data = await getEventById(id)
-        console.log(data)
-        setEvent(data)
+        const data = await getEventById(id);
+        console.log(data);
+        setEvent(data);
       } catch (error) {
-        setError(error)
+        console.log(error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchEvent()
-  }, [id])
+    fetchEvent();
+  }, [id]);
 
-  console.log("Event state:", JSON.stringify(event, null, 2))
+  console.log("Event state:", JSON.stringify(event, null, 2));
   if (!isAuthorized) {
-    return null
+    return null;
   }
 
   if (isLoading) {
-    return <div>Loading...</div>
-  }
-
-  if (error) {
-    return <div>Error fetching event: {error.message}</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -67,7 +62,7 @@ const UpdateEvent = ({ params: { id } }: UpdateEventProps) => {
         />
       </div>
     </>
-  )
-}
+  );
+};
 
-export default UpdateEvent
+export default UpdateEvent;
