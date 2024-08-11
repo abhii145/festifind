@@ -23,7 +23,7 @@ const ProfilePage = ({ searchParams }: SearchParamProps) => {
         </div>
       </section>
       <section className="wrapper my-8">
-        <Collection
+        {/* <Collection
           data={null}
           emptyTitle="No event tickets purchased yet"
           emptyStateSubtext="No worries - plenty of exciting events to explore!"
@@ -32,7 +32,7 @@ const ProfilePage = ({ searchParams }: SearchParamProps) => {
           page={1}
           urlParamName="ordersPage"
           totalPages={1}
-        />
+        /> */}
       </section>
       ;
     </>
