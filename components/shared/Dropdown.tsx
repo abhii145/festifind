@@ -18,42 +18,52 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Input } from "../ui/input"
+import {
+  createCategory,
+  getAllCategories,
+} from "@/lib/actions/categories.actions"
+
+type ICategory = {
+  _id: string
+  name: string
+}
 
 type DropdownProps = {
   value?: string
-  onChangeHandler?: () => void
+  onChangeHandler?: (value: string) => void
 }
 
 const Dropdown = ({ value, onChangeHandler }: DropdownProps) => {
-  const [categories, setCategories] = useState([
-      {
-          _id: "1",
-          name: "Category 1",
-      }, {
-           _id: "2",
-      name: "Category 2",
-      }
-])
+  const [categories, setCategories] = useState([] as ICategory[])
   const [newCategory, setNewCategory] = useState("")
 
   const handleAddCategory = () => {
-    // createCategory({
-    //   categoryName: newCategory.trim(),
-    // }).then((category) => {
-    //   setCategories((prevState) => [...prevState, category])
-    // })
+    createCategory({ categoryName: newCategory.trim() })
+      .then((category) => {
+        if (category) {
+          setCategories((prevState) => [...prevState, category])
+        } else {
+          alert("Category already exists.")
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to create category:", error)
+      })
   }
 
   useEffect(() => {
-    // const getCategories = async () => {
-    //   const categoryList = await getAllCategories()
-    //   categoryList && setCategories(categoryList as ICategory[])
-    // }
-    // getCategories()
+    const getCategories = async () => {
+      const categoryList = await getAllCategories()
+      categoryList && setCategories(categoryList as ICategory[])
+    }
+    getCategories()
   }, [])
 
   return (
-    <Select onValueChange={onChangeHandler} defaultValue={value}>
+    <Select
+      onValueChange={(value) => onChangeHandler?.(value)}
+      defaultValue={value}
+    >
       <SelectTrigger className="select-field">
         <SelectValue placeholder="Category" />
       </SelectTrigger>
@@ -62,7 +72,7 @@ const Dropdown = ({ value, onChangeHandler }: DropdownProps) => {
           categories.map((category) => (
             <SelectItem
               key={category?._id}
-              value={category?._id}
+              value={category?.name}
               className="select-item p-regular-14"
             >
               {category?.name}

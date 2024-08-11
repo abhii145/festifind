@@ -24,60 +24,111 @@ import { eventDefaultValues } from "@/constants"
 import { useState } from "react"
 import FileUploader from "./FileUploader"
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import { createEvent, updateEvent } from "@/lib/actions/event.actions"
+import { useRouter } from "next/navigation"
 
-const EventForm = ({
-  userId,
-  type,
-}: {
+type EventFormProps = {
   userId: string
   type: "Create" | "Update"
-}) => {
-  const initialValues = eventDefaultValues
-  const [file, setFile] = useState<File | null>(null)
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  event?: any
+  eventId?: string
+}
 
+const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
+
+
+
+  const initialValues =
+    event && type === "Update"
+      ? {
+          ...event,
+          imageUrl: event.imageUrl || "",
+          startDateTime: new Date(event.startDateTime),
+          endDateTime: new Date(event.endDateTime),
+        }
+      : eventDefaultValues
+
+  const [file, setFile] = useState<File | null>(null)
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: initialValues,
   })
 
-    const Bucket = process.env.NEXT_PUBLIC_AWS_BUCKET_NAME
-    const s3 = new S3Client({
-      region: process.env.NEXT_PUBLIC_AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID as string,
-        secretAccessKey: process.env
-          .NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY as string,
-      },
-    })
+  const Bucket = process.env.NEXT_PUBLIC_AWS_BUCKET_NAME
+  const s3 = new S3Client({
+    region: process.env.NEXT_PUBLIC_AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID as string,
+      secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY as string,
+    },
+  })
 
- const onSubmit = async (data: z.infer<typeof eventFormSchema>) => {
-   if (file) {
-     const fileName = file.name
+  const onSubmit = async (data: z.infer<typeof eventFormSchema>) => {
+    if (file) {
+      const fileName = file.name
 
-     try {
-       const uploadToS3 = new PutObjectCommand({
-         Bucket,
-         Key: fileName,
-         Body: file,
-       })
-       await s3.send(uploadToS3)
-       const s3Url = `https://${Bucket}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${fileName}`
-       setPhotoUrl(s3Url)
-       console.log({ ...data, imageUrl: s3Url })
-       console.log(data?.imageUrl)
-     } catch (error) {
-       console.log(error)
-     }
-   } else {
-     console.log({ ...data, photoUrl })
-   }
- }
+      try {
+        const uploadToS3 = new PutObjectCommand({
+          Bucket,
+          Key: fileName,
+          Body: file,
+        })
+        await s3.send(uploadToS3)
+        const s3Url = `https://${Bucket}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${fileName}`
 
- const handleFileSelect = (selectedFile: File) => {
-   setFile(selectedFile)
- }
+        if (type === "Create") {
+          try {
+            const submittedData = {
+              ...data,
+              imageUrl: s3Url,
+              category: data.categoryId,
+            }
+            // console.log(submittedData)
+            const newEvent = await createEvent(submittedData)
+
+            if (newEvent) {
+              router.push(`/events/${newEvent._id}`)
+              form.reset()
+              console.log("Event created successfully")
+            }
+          } catch (error) {
+            throw error
+          }
+        }
+
+          if (type === "Update" && eventId) {
+            try {
+              const updatedData = {
+                ...data,
+                imageUrl: s3Url,
+                category: data.categoryId,
+              }
+              console.log("Updating Event:", updatedData)
+              const updatedEvent = await updateEvent(eventId, updatedData)
+
+              if (updatedEvent) {
+                router.push('/')
+                form.reset()
+                console.log("Event created successfully")
+              }
+            } catch (error) {
+              console.error("Error updating event:", error)
+              throw error
+            }
+          }
+
+
+      } catch (error) {
+        console.log(error)
+      }
+    }
+  }
+
+  const handleFileSelect = (selectedFile: File) => {
+    setFile(selectedFile)
+  }
 
   return (
     <Form {...form}>
@@ -109,7 +160,10 @@ const EventForm = ({
               <FormItem className="w-full">
                 <FormControl>
                   <Dropdown
-                    onChangeHandler={field.onChange}
+                    onChangeHandler={(value) => {
+                      field.onChange(value)
+                      console.log(value)
+                    }}
                     value={field.value}
                   />
                 </FormControl>
@@ -142,7 +196,10 @@ const EventForm = ({
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormControl className="h-72">
-                  <FileUploader onFileSelect={handleFileSelect} />
+                  <FileUploader
+                    onFileSelect={handleFileSelect}
+                    imageUrl={field.value}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -1,8 +1,12 @@
+import Collection from "@/components/shared/Collection"
 import { Button } from "@/components/ui/button"
+import { getAllEvents } from "@/lib/actions/event.actions"
 import Image from "next/image"
 import Link from "next/link"
 
-export default function Home() {
+export default async function Home() {
+  const events = await getAllEvents()
+
   return (
     <>
       <section className="bg-primary-50 bg-dotted-pattern bg-contain py-5 md:py-10">
@@ -37,6 +41,22 @@ export default function Home() {
         <h2 className="h2-bold">
           Trust by <br /> Thousands of Events
         </h2>
+
+        <div className="flex w-full flex-col gap-5 md:flex-row">
+          searcg CategoryFilter
+        </div>
+
+
+
+        <Collection
+          data={events}
+          emptyTitle="No Events Found"
+          emptyStateSubtext="Come back later"
+          collectionType="All_Events"
+          limit={6}
+          page={1}
+          totalPages={events?.totalPages}
+        />
       </section>
     </>
   )

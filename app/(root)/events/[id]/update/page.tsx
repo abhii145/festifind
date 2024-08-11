@@ -1,11 +1,54 @@
 "use client"
 import EventForm from "@/components/shared/EventForm"
+import { getEventById } from "@/lib/actions/event.actions"
+import useAuth from "@/lib/useAuth"
 import { RootState } from "@/store/store"
 import { useSelector } from "react-redux"
+import { useState, useEffect } from "react"
 
-const UpdateEvent = () => {
+type UpdateEventProps = {
+  params: {
+    id: string
+  }
+}
+
+const UpdateEvent = ({ params: { id } }: UpdateEventProps) => {
+  const isAuthorized = useAuth("admin")
   const user = useSelector((state: RootState) => state.user.user)
   const userId = user?._id!
+
+  const [event, setEvent] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const data = await getEventById(id)
+        console.log(data)
+        setEvent(data)
+      } catch (error) {
+        setError(error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchEvent()
+  }, [id])
+
+  console.log("Event state:", JSON.stringify(event, null, 2))
+  if (!isAuthorized) {
+    return null
+  }
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (error) {
+    return <div>Error fetching event: {error.message}</div>
+  }
 
   return (
     <>
@@ -16,7 +59,12 @@ const UpdateEvent = () => {
       </section>
 
       <div className="wrapper my-8">
-        <EventForm userId={userId} type="Update" />
+        <EventForm
+          type="Update"
+          event={event}
+          eventId={event?.id}
+          userId={userId}
+        />
       </div>
     </>
   )
